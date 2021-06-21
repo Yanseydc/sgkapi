@@ -14,4 +14,6 @@ router.put('/:clientId', authJWT.verifyToken, clientsController.updateClientById
 
 router.delete('/:clientId', authJWT.verifyToken, clientsController.deleteClientById);
 
+router.post('/checkIn', [authJWT.verifyToken], clientsController.checkIn)
+
 export default router;

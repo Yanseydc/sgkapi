@@ -1,4 +1,5 @@
-import Role from './../models/Role'
+import Role from './../models/Role';
+import Plan from './../models/Plan';
 
 export const createRoles = async () => {
     try {    
@@ -13,6 +14,23 @@ export const createRoles = async () => {
         ]);
 
         console.log(values);
+    } catch(error) {
+        console.error(error);
+    }
+}
+
+export const createPlans = async () => {
+    try {
+        const count = await Plan.estimatedDocumentCount();
+        
+        if(count > 0) return;
+
+        const values = await Promise.all([
+            new Plan({ name: 'Mensual', cost: '300' }).save(),
+            new Plan({ name: 'Bimestral', cost: '550' }).save(),
+            new Plan({ name: 'Semestral', cost: '1500' }).save(),
+        ]);
+
     } catch(error) {
         console.error(error);
     }

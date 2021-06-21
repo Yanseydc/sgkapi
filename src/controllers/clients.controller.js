@@ -1,4 +1,5 @@
 import Client from './../models/Client';
+import CheckIn from './../models/CheckIn';
 
 export const createClient = async (req, res) => {
     console.log('im creating a client');
@@ -39,11 +40,32 @@ export const deleteClientById = async (req, res) => {
 
     const clientDeleted = await Client.findByIdAndDelete(clientId);
 
-    if(!clientDeleted) return res.status(404).json({ message: `Client doesn't exist`});
+    if(!clientDeleted) return res.status(404).json({ message: `Cliente no existe`});
 
-    res.status(200).json({message: "client deleted correctly"});
+    res.status(200).json({message: "El cliente se borro correctamente"});
 }
 
+export const checkIn = async (req, res) => {
+    try {
+        const { clientId } = req.body;
+
+        const clientFound = await Client.findById(clientId);
+
+        console.log('client', clientId);
+        console.log('clientFound', clientFound);
+        
+
+        if(!clientFound) return res.status(404).json({ message: "Cliente no existe"});
+
+        const newCheckIn = new CheckIn({ client: clientId });
+
+        await newCheckIn.save();
+
+        res.status(200).json({message: "Entrada"})
+    } catch(error) {
+        console.error(error);
+    }
+}
 
 
 //bustboy & multer to upload images
