@@ -1,28 +1,62 @@
 import Client from './../models/Client';
 import CheckIn from './../models/CheckIn';
+import Payment from './../models/Payment';
 
-export const createClient = async (req, res) => {
-    console.log('im creating a client');
-    const { name, lastName, birthDate } = req.body;    
-    const newClient = new Client({ name, lastName, birthDate });
+export const createClient = async (req, res) => {    
+    const { firstName, lastName, email, phone, birthDate, referenceName, referencePhone } = req.body;   
+    const newClient = new Client({ 
+        firstName, 
+        lastName, 
+        email,
+        phone,
+        birthDate: new Date(birthDate),        
+        referenceName,
+        referencePhone
+    });
+
     const clientSaved = await newClient.save();
     res.status(201).json(clientSaved);    
 }
 
 export const getClients = async (req, res) => {
-    const clients = await Client.find();//get all clients
+    try {
+        let clients = await Client.find();//get all clients    
 
-    res.status(200).json(clients);
+        const addPayments = await Promise.all(clients.map(async (client) => {    
+            
+            const clientPayment = await Payment.findOne(
+                { client: client._id }, {}, { sort: { 'createdAt': -1 }}            
+            ).populate('plan'); 
+                        
+            const { _id, firstName, lastName } = client; 
+
+            return {
+                _id,
+                firstName,
+                lastName,
+                lastPayment: clientPayment?.createdAt,
+                plan: clientPayment?.plan[0]
+            };
+        }));
+
+        res.status(200).json(addPayments);
+    }catch(error) {
+        console.error("getClients-error: ", error);
+    }
 }
 
 export const getCLientById = async (req, res) => {
-    const { clientId } = req.params;
+    try {
+        const { clientId } = req.params;
 
-    const client = await Client.findById(clientId);
+        const client = await Client.findById(clientId);
 
-    if(!client) return res.status(404).json({ message: `Client not found` });
+        if(!client) return res.status(404).json({ message: `No se encontro el cliente` });
 
-    res.status(200).json(client);
+        res.status(200).json(client);
+    } catch(error) {
+        console.log('get by id - error: ', error);
+    }
 }
 
 export const updateClientById = async (req, res) => {
@@ -45,15 +79,11 @@ export const deleteClientById = async (req, res) => {
     res.status(200).json({message: "El cliente se borro correctamente"});
 }
 
-export const checkIn = async (req, res) => {
+export const checkInClient = async (req, res) => {
     try {
         const { clientId } = req.body;
 
         const clientFound = await Client.findById(clientId);
-
-        console.log('client', clientId);
-        console.log('clientFound', clientFound);
-        
 
         if(!clientFound) return res.status(404).json({ message: "Cliente no existe"});
 
@@ -63,9 +93,25 @@ export const checkIn = async (req, res) => {
 
         res.status(200).json({message: "Entrada"})
     } catch(error) {
-        console.error(error);
+        console.error('checkIn-error: ', error);
     }
 }
 
+export const paymentClient = async (req, res) => {
+    try {
+        const { clientId, plan, entryDate, newCost } = req.body;
 
-//bustboy & multer to upload images
+        const clientFound = await Client.findById(clientId);
+
+        if(!clientFound) return res.status(404).json({ message: "Cliente no existe"});
+
+        const newPayment = new Payment({ client: clientId, plan,  entryDate, newCost});
+
+        await newPayment.save();
+
+        res.status(200).json({message: "payment successfully"})
+    } catch(error) {
+        console.error('payment-error: ', error);
+    }
+}
+

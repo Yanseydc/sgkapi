@@ -8,7 +8,7 @@ const checkInSchema = new Schema({
 }, {
     timestamps: true,
     versionKey: false //__v avoid
-})
+});
 
 //singupDate
 //downDate

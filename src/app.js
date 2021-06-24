@@ -6,6 +6,8 @@ import { createRoles, createPlans } from './libs/initialSetup';
 import userRoutes from './routes/user.routes';
 import clientRoutes from './routes/client.routes';
 import authRoutes from './routes/auth.routes';
+import planRoutes from './routes/plan.routes';
+
 const app = express();
 
  //execute initial setup functions
@@ -32,5 +34,6 @@ app.get('/', (req, res) => {
 app.use('/api/clients', clientRoutes);
 app.use('/api/users', userRoutes); //to avoid type users on every router from users.routes
 app.use('/api/auth', authRoutes);
+app.use('/api/plans', planRoutes);
 
 export default app;
