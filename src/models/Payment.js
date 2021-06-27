@@ -6,17 +6,21 @@ const paymentSchema = new Schema({
         type: Schema.Types.ObjectId,
         required: true
     }],
-    plan: [{
-        ref: 'Plan',
-        type: Schema.Types.ObjectId,
-        required: false
-    }],
+    // plan: [{
+    //     ref: 'Plan',
+    //     type: Schema.Types.ObjectId,
+    //     required: false
+    // }],
+    months: {
+        type: Number,
+        required: true
+    },
     entryDate: {
         type: Date,
         required: true
     },
-    newCost: {
-        type: String,
+    cost: {
+        type: Number,
         required: false
     }
 }, {

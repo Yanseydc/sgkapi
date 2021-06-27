@@ -9,13 +9,13 @@ export const createClient = async (req, res) => {
         lastName, 
         email,
         phone,
-        birthDate: new Date(birthDate),        
+        birthDate: birthDate ? new Date(birthDate) : '',        
         referenceName,
         referencePhone
     });
 
     const clientSaved = await newClient.save();
-    res.status(201).json(clientSaved);    
+    res.status(201).json({ message: "Cliente registrado correctamente"});    
 }
 
 export const getClients = async (req, res) => {
@@ -34,8 +34,8 @@ export const getClients = async (req, res) => {
                 _id,
                 firstName,
                 lastName,
-                lastPayment: clientPayment?.createdAt,
-                plan: clientPayment?.plan[0]
+                lastPayment: clientPayment?.entryDate,
+                months: clientPayment?.months
             };
         }));
 
@@ -99,13 +99,13 @@ export const checkInClient = async (req, res) => {
 
 export const paymentClient = async (req, res) => {
     try {
-        const { clientId, plan, entryDate, newCost } = req.body;
+        const { clientId, months, cost, entryDate } = req.body;
 
         const clientFound = await Client.findById(clientId);
 
         if(!clientFound) return res.status(404).json({ message: "Cliente no existe"});
 
-        const newPayment = new Payment({ client: clientId, plan,  entryDate, newCost});
+        const newPayment = new Payment({ client: clientId, months, cost, entryDate });
 
         await newPayment.save();
 
