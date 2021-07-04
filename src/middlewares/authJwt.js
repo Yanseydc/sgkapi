@@ -7,13 +7,13 @@ export const verifyToken = async (req, res, next) => {
     try {
         const token = req.headers["x-access-token"];
             
-        if(!token) return res.status(403).json({ message: "No token provided" });
+        if(!token) return res.status(403).json({ message: "Token de seguridad faltante" });
                 
         const decoded = jwt.verify(token, SECRET); //if true will return the id of the user { id: 'userid };
 
         const userFound = await User.findById(decoded.id); //we must validate that the ID exist
 
-        if(!userFound) return res.status(403).json({ message: "You doesn't have the permission " });
+        if(!userFound) return res.status(403).json({ message: "No tienes el permiso " });
 
         req.userId = decoded.id; //we add the user id to the req object, because it's going to be used in the isAdmin method
 
@@ -30,7 +30,7 @@ export const isAdmin = async (req, res, next) => {
 
     const hasAdminRole = userFound.roles.some( role => role.name === 'admin'); //validate if there is a role with admin name
 
-    if(!hasAdminRole) return res.status(403).json({ message: `permission required to do this`}); //403 status: forbidden
+    if(!hasAdminRole) return res.status(403).json({ message: `Se requieren permisos para hacer esto`}); //403 status: forbidden
     
     next();
 }

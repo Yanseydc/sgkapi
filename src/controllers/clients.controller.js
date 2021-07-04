@@ -1,9 +1,13 @@
 import Client from './../models/Client';
 import CheckIn from './../models/CheckIn';
 import Payment from './../models/Payment';
+import fs from 'fs';
 
 export const createClient = async (req, res) => {    
-    const { firstName, lastName, email, phone, birthDate, referenceName, referencePhone } = req.body;   
+    const { firstName, lastName, email, phone, birthDate, referenceName, referencePhone, image64 } = req.body;  
+    
+    let imagePath = image64 ? getImagePath(image64) : '';
+
     const newClient = new Client({ 
         firstName, 
         lastName, 
@@ -11,7 +15,8 @@ export const createClient = async (req, res) => {
         phone,
         birthDate: birthDate ? new Date(birthDate) : '',        
         referenceName,
-        referencePhone
+        referencePhone,
+        imagePath
     });
 
     const clientSaved = await newClient.save();
@@ -20,22 +25,21 @@ export const createClient = async (req, res) => {
 
 export const getClients = async (req, res) => {
     try {
-        let clients = await Client.find();//get all clients    
+        let clients = await Client.find({}, {}, { sort: { createdAt: -1 } });//get all clients    
 
         const addPayments = await Promise.all(clients.map(async (client) => {    
             
-            const clientPayment = await Payment.findOne(
-                { client: client._id }, {}, { sort: { 'createdAt': -1 }}            
-            ).populate('plan'); 
+            const clientPayment = await Payment.findOne({ client: client._id }, {}, { sort: { createdAt: -1 }})
                         
-            const { _id, firstName, lastName } = client; 
+            const { _id, firstName, lastName, imagePath } = client; 
 
             return {
                 _id,
                 firstName,
                 lastName,
                 lastPayment: clientPayment?.entryDate,
-                months: clientPayment?.months
+                months: clientPayment?.months,
+                imagePath
             };
         }));
 
@@ -53,7 +57,17 @@ export const getCLientById = async (req, res) => {
 
         if(!client) return res.status(404).json({ message: `No se encontro el cliente` });
 
-        res.status(200).json(client);
+        const { _id, firstName, lastName } = client; 
+
+        const clientPayment = await Payment.findOne({ client: client._id }, {}, { sort: { 'createdAt': -1 }});
+
+        res.status(200).json({
+            _id,
+            firstName,
+            lastName,
+            lastPayment: clientPayment?.entryDate,
+            months: clientPayment?.months
+        });
     } catch(error) {
         console.log('get by id - error: ', error);
     }
@@ -70,13 +84,18 @@ export const updateClientById = async (req, res) => {
 }
 
 export const deleteClientById = async (req, res) => {
-    const { clientId } = req.params;
+    try {
+        const { clientId } = req.params;
 
-    const clientDeleted = await Client.findByIdAndDelete(clientId);
+        const clientDeleted = await Client.findByIdAndDelete(clientId);
 
-    if(!clientDeleted) return res.status(404).json({ message: `Cliente no existe`});
+        if(!clientDeleted) return res.status(404).json({ message: `Cliente no existe`});
 
-    res.status(200).json({message: "El cliente se borro correctamente"});
+        res.status(200).json({message: "El cliente se borro correctamente"});
+    } catch (error) {
+        console.error('delete client: ', error);
+    }
+
 }
 
 export const checkInClient = async (req, res) => {
@@ -115,3 +134,19 @@ export const paymentClient = async (req, res) => {
     }
 }
 
+
+const getImagePath = (image64) => {
+
+    let match = image64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    
+    let buffer =  Buffer.from(match[2], 'base64');
+    
+    let imageName = `photo_${new Date().getTime()}.png`;
+    let imagePath = `public/${imageName}`;
+    
+    fs.writeFile( imagePath, buffer, (err) => {
+        if(err) console.error('image save error: ', err);
+    });
+
+    return imageName;
+}

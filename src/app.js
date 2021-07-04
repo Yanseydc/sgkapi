@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors'
 import pkg from './../package.json';
+import path from 'path';
 import { createRoles, createPlans } from './libs/initialSetup'; 
 import userRoutes from './routes/user.routes';
 import clientRoutes from './routes/client.routes';
@@ -14,12 +15,14 @@ const app = express();
 createRoles();
 createPlans();
 
-
+//initial config
 app.set('pkg', pkg);
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cors());
+app.use('/static', express.static(path.join(__dirname, '../public')));
 
+console.log(path.join(__dirname, '../public'));
 
 //apis
 app.get('/', (req, res) => {

@@ -7,7 +7,9 @@ const clientSchema = new Schema({
     phone: { type: String, required: false },
     referenceName: { type: String, required: false },
     referencePhone: { type: String, required: false },
-    email: { type: String, required: false }
+    email: { type: String, required: false },
+    photo: { type: Buffer, required: false },
+    imagePath: { type: String, required: false },
 }, {
     timestamps: true,
     versionKey: false //__v avoid
