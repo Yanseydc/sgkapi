@@ -4,23 +4,27 @@ import Payment from './../models/Payment';
 import fs from 'fs';
 
 export const createClient = async (req, res) => {    
-    const { firstName, lastName, email, phone, birthDate, referenceName, referencePhone, image64 } = req.body;  
-    
-    let imagePath = image64 ? getImagePath(image64) : '';
+    try {
+        const { firstName, lastName, email, phone, birthDate, referenceName, referencePhone, image64 } = req.body;  
+        
+        let imagePath = image64 ? getImagePath(image64) : '';
 
-    const newClient = new Client({ 
-        firstName, 
-        lastName, 
-        email,
-        phone,
-        birthDate: birthDate ? new Date(birthDate) : '',        
-        referenceName,
-        referencePhone,
-        imagePath
-    });
+        const newClient = new Client({ 
+            firstName, 
+            lastName, 
+            email,
+            phone,
+            birthDate: birthDate ? new Date(birthDate) : '',        
+            referenceName,
+            referencePhone,
+            imagePath
+        });
 
-    const clientSaved = await newClient.save();
-    res.status(201).json({ message: "Cliente registrado correctamente"});    
+        const clientSaved = await newClient.save();
+        res.status(201).json({ message: "Cliente registrado correctamente"});    
+    } catch(error) {
+        console.error("create-client-error: ", error);
+    }
 }
 
 export const getClients = async (req, res) => {
@@ -56,17 +60,10 @@ export const getCLientById = async (req, res) => {
         const client = await Client.findById(clientId);
 
         if(!client) return res.status(404).json({ message: `No se encontro el cliente` });
-
-        const { _id, firstName, lastName } = client; 
-
-        const clientPayment = await Payment.findOne({ client: client._id }, {}, { sort: { 'createdAt': -1 }});
-
+        const payments = await Payment.find({ client: clientId });
+        const checkIns = await CheckIn.find({ client: clientId });
         res.status(200).json({
-            _id,
-            firstName,
-            lastName,
-            lastPayment: clientPayment?.entryDate,
-            months: clientPayment?.months
+            client, payments, checkIns
         });
     } catch(error) {
         console.log('get by id - error: ', error);
@@ -74,13 +71,16 @@ export const getCLientById = async (req, res) => {
 }
 
 export const updateClientById = async (req, res) => {
-    const { clientId } = req.params;
+    try {
+        const { clientId } = req.params;
 
-    const updatedClient = await Client.findByIdAndUpdate(clientId, req.body, {
-        new: true //to return new data updated
-    });
+        // console.log('data', data);
+        await Client.findByIdAndUpdate(clientId, req.body);
 
-    res.status(200).json(updatedClient);
+        res.status(200).json({ message: 'Cliente actualizado correctamentee' });
+    } catch(error) {
+        console.log(error);
+    }
 }
 
 export const deleteClientById = async (req, res) => {

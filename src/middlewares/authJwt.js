@@ -30,7 +30,7 @@ export const isAdmin = async (req, res, next) => {
 
     const hasAdminRole = userFound.roles.some( role => role.name === 'admin'); //validate if there is a role with admin name
 
-    if(!hasAdminRole) return res.status(403).json({ message: `Se requieren permisos para hacer esto`}); //403 status: forbidden
+    if(!hasAdminRole) return res.status(403).json({ message: `Se requieren permisos de administrador para hacer esto`}); //403 status: forbidden
     
     next();
 }

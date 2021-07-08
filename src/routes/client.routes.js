@@ -6,13 +6,13 @@ const router = Router();
 //routes
 router.post('/', [authJWT.verifyToken], clientsController.createClient);
 
-router.get('/', clientsController.getClients);
+router.get('/', [authJWT.verifyToken], clientsController.getClients);
 
-router.get('/:clientId', clientsController.getCLientById);
+router.get('/:clientId', [authJWT.verifyToken], clientsController.getCLientById);
 
-router.put('/:clientId', authJWT.verifyToken, clientsController.updateClientById);
+router.put('/:clientId', [authJWT.verifyToken, authJWT.isAdmin], clientsController.updateClientById);
 
-router.delete('/:clientId', authJWT.verifyToken, clientsController.deleteClientById);
+router.delete('/:clientId', [authJWT.verifyToken, authJWT.isAdmin], clientsController.deleteClientById);
 
 router.post('/checkIn', [authJWT.verifyToken], clientsController.checkInClient);
 
