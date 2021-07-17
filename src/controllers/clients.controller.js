@@ -49,7 +49,7 @@ export const getClients = async (req, res) => {
 
         res.status(200).json(addPayments);
     }catch(error) {
-        console.error("getClients-error: ", error);
+        res.status(200).json(error);
     }
 }
 
@@ -60,7 +60,8 @@ export const getCLientById = async (req, res) => {
         const client = await Client.findById(clientId);
 
         if(!client) return res.status(404).json({ message: `No se encontro el cliente` });
-        const payments = await Payment.find({ client: clientId });
+        
+        const payments = await Payment.find({ client: clientId }, {}, { sort: {createdAt: -1 } });
         const checkIns = await CheckIn.find({ client: clientId });
         res.status(200).json({
             client, payments, checkIns

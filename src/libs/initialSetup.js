@@ -26,9 +26,9 @@ export const createPlans = async () => {
         if(count > 0) return;
 
         const values = await Promise.all([
-            new Plan({ name: 'Mensual', cost: '300', quantity: 1 }).save(),
-            new Plan({ name: 'Bimestral', cost: '550', quantity: 2 }).save(),
-            new Plan({ name: 'Semestral', cost: '1500', quantity: 6 }).save(),
+            new Plan({ name: 'Mensual', cost: '300', months: 1 }).save(),
+            new Plan({ name: 'Bimestral', cost: '550', months: 2 }).save(),
+            new Plan({ name: 'Semestral', cost: '1500', months: 6 }).save(),
         ]);
 
     } catch(error) {

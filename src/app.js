@@ -18,7 +18,7 @@ createPlans();
 //initial config
 app.set('pkg', pkg);
 app.use(morgan('dev'));
-app.use(express.json());
+app.use(express.json()); //this will parse the body to json to be able to destruct body
 app.use(cors());
 app.use('/static', express.static(path.join(__dirname, '../public')));
 
