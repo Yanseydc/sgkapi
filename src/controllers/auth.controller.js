@@ -4,35 +4,41 @@ import jwt from 'jsonwebtoken';
 import { SECRET } from './../config'
 
 export const signUp = async (req, res) => {
-    const { username, email, password, roles } = req.body;
+    try {
+        const { username, email, password, roles } = req.body;
 
-    //before saving user we have to validate if existing, update: there is a middle ware verifying that 
+        if(!username, !password) return res.status(404).json({ message: "Usuario y contraseña no deben ir vacias" });
+        //before saving user we have to validate if existing, update: there is a middle ware verifying that 
+        const newUser = new User({
+            username,
+            email,
+            password: await User.encryptPassword(password)        
+        });
 
-    const newUser = new User({
-        username,
-        email,
-        password: await User.encryptPassword(password)        
-    });
+        //validate if has roles, if not add user role as default
+        if(roles) {
+            const foundRoles = await Role.find({ name: { $in: roles } }); //return an array of founded roles;
+            newUser.roles = foundRoles.map( role => role._id); //founded roles just save the _id of them
+        } else {
+            const role = await Role.findOne({ name: 'user' });
+            newUser.roles = [ role._id ];
+        }
+        
+        await newUser.save();
+        //now the user won't be authenticated from the beggining
+        // const token = jwt.sign({id: userSaved._id}, SECRET, { expiresIn: 14400 }); //86400s == 24 hrs
 
-    //validate if has roles, if not add user role as default
-    if(roles) {
-        const foundRoles = await Role.find({ name: { $in: roles } }); //return an array of founded roles;
-        newUser.roles = foundRoles.map( role => role._id); //founded roles just save the _id of them
-    } else {
-        const role = await Role.findOne({ name: 'user' });
-        newUser.roles = [ role._id ];
+        res.json({message: 'El usuario se registro correctamente'});
+    } catch(error) {
+        res.json({message: error.response.data.message});
     }
-    
-    const userSaved = await newUser.save();
-
-    const token = jwt.sign({id: userSaved._id}, SECRET, { expiresIn: 14400 }); //86400s == 24 hrs
-
-    res.json(token);
 };
 
 export const signIn = async (req, res) => {
     try {
         const { username, password } = req.body;
+
+        if(!username || !password) return res.status(404).json({ message: "Usuario y contraseña no deben ir vacias" });
 
         //from the logging we find the user
         const userFound = await User.findOne({ username }).populate("roles"); //adding populate(<param>) function returns the name object of the associated role
@@ -49,7 +55,7 @@ export const signIn = async (req, res) => {
 
         res.json({ token, username: userFound.username, email: userFound.email });
     }catch(error) {
-        res.json({message: error.response.data.message});
+        res.json({message: error.response?.data.message});
     }
 };
 

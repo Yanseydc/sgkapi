@@ -5,9 +5,9 @@ import fs from 'fs';
 
 export const createClient = async (req, res) => {    
     try {
-        const { firstName, lastName, email, phone, birthDate, referenceName, referencePhone, image64 } = req.body;  
+        const { firstName, lastName, email, phone, birthDate, referenceName, referencePhone, imagePath } = req.body;  
         
-        let imagePath = image64 ? getImagePath(image64) : '';
+        let path = imagePath ? getImagePath(imagePath) : '';
 
         const newClient = new Client({ 
             firstName, 
@@ -17,13 +17,13 @@ export const createClient = async (req, res) => {
             birthDate: birthDate ? new Date(birthDate) : '',        
             referenceName,
             referencePhone,
-            imagePath
+            imagePath: path
         });
 
-        const clientSaved = await newClient.save();
+        await newClient.save();
         res.status(201).json({ message: "Cliente registrado correctamente"});    
     } catch(error) {
-        console.error("create-client-error: ", error);
+        res.json({message: error.response.data.message});
     }
 }
 
@@ -49,7 +49,7 @@ export const getClients = async (req, res) => {
 
         res.status(200).json(addPayments);
     }catch(error) {
-        res.status(200).json(error);
+        res.json({message: error.response.data.message});
     }
 }
 
@@ -67,20 +67,26 @@ export const getCLientById = async (req, res) => {
             client, payments, checkIns
         });
     } catch(error) {
-        console.log('get by id - error: ', error);
+        res.json({message: error.response.data.message});
     }
 }
 
 export const updateClientById = async (req, res) => {
     try {
         const { clientId } = req.params;
+        
+        let client = await Client.findById(clientId);
 
-        // console.log('data', data);
+        let imageName = client.imagePath;
+        if(imageName) deleteImagePath(imageName);
+        req.body.birthDate = req.body.birthDate ? new Date(req.body.birthDate): '';
+        req.body.imagePath = req.body.imagePath ? getImagePath(req.body.imagePath): '';
+        
         await Client.findByIdAndUpdate(clientId, req.body);
+        res.status(200).json({ message: 'Cliente actualizado correctamente' });
 
-        res.status(200).json({ message: 'Cliente actualizado correctamentee' });
     } catch(error) {
-        console.log(error);
+        res.json({message: error.response.data.message});
     }
 }
 
@@ -94,7 +100,7 @@ export const deleteClientById = async (req, res) => {
 
         res.status(200).json({message: "El cliente se borro correctamente"});
     } catch (error) {
-        console.error('delete client: ', error);
+        res.json({message: error.response.data.message});
     }
 
 }
@@ -113,7 +119,7 @@ export const checkInClient = async (req, res) => {
 
         res.status(200).json({message: "Entrada"})
     } catch(error) {
-        console.error('checkIn-error: ', error);
+        res.json({message: error.response.data.message});
     }
 }
 
@@ -125,13 +131,17 @@ export const paymentClient = async (req, res) => {
 
         if(!clientFound) return res.status(404).json({ message: "Cliente no existe"});
 
-        const newPayment = new Payment({ client: clientId, months, cost, entryDate });
+        let time = new Date(new Date().getTime()).toTimeString().split(" ")[0];
+        let dateTime = new Date(`${entryDate}T${time}`);
+        let client = { client: clientId, months, cost, entryDate: dateTime };
+
+        const newPayment = new Payment(client);
 
         await newPayment.save();
 
         res.status(200).json({message: "payment successfully"})
     } catch(error) {
-        console.error('payment-error: ', error);
+        res.json({message: error.response.data.message});
     }
 }
 
@@ -146,8 +156,16 @@ const getImagePath = (image64) => {
     let imagePath = `public/${imageName}`;
     
     fs.writeFile( imagePath, buffer, (err) => {
-        if(err) console.error('image save error: ', err);
+        if(err) return res.status(404).json({ message: "Error al guardar foto"});
     });
 
     return imageName;
+}
+
+const deleteImagePath = (imageName) => {
+    try {
+        fs.unlinkSync(`public/${imageName}`);
+    } catch(error) {
+        res.json({message: error.response.data.message});
+    }
 }

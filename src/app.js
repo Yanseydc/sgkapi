@@ -3,7 +3,7 @@ import morgan from 'morgan';
 import cors from 'cors'
 import pkg from './../package.json';
 import path from 'path';
-import { createRoles, createPlans } from './libs/initialSetup'; 
+import { createRoles } from './libs/initialSetup'; 
 import userRoutes from './routes/user.routes';
 import clientRoutes from './routes/client.routes';
 import authRoutes from './routes/auth.routes';
@@ -13,7 +13,7 @@ const app = express();
 
  //execute initial setup functions
 createRoles();
-createPlans();
+// createPlans();
 
 //initial config
 app.set('pkg', pkg);
@@ -21,8 +21,6 @@ app.use(morgan('dev'));
 app.use(express.json()); //this will parse the body to json to be able to destruct body
 app.use(cors());
 app.use('/static', express.static(path.join(__dirname, '../public')));
-
-console.log(path.join(__dirname, '../public'));
 
 //apis
 app.get('/', (req, res) => {
