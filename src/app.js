@@ -19,7 +19,7 @@ createRoles();
 app.set('pkg', pkg);
 app.use(morgan('dev'));
 app.use(express.json()); //this will parse the body to json to be able to destruct body
-app.use(cors({origin: '*'}));
+app.use(cors({origin: 'https://sgk-r8nwc.ondigitalocean.app'}));
 app.use('/static', express.static(path.join(__dirname, '../public')));
 
 //apis
