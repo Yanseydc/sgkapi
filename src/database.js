@@ -1,7 +1,15 @@
 import mongoose from 'mongoose';
+const {
+    DB_USER,
+    DB_PASS,
+    DB_HOST,
+    DB_PORT,
+    DB_COLLECTION,
+    DB_SOURCE
+} = process.env;
 
 mongoose.connect(
-    `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_COLLECTION}`,
+    `mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_COLLECTION}${DB_SOURCE}`,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true,
