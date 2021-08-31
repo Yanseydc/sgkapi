@@ -1,1 +1,1 @@
-export const SECRET = 'client_api';
+export const SECRET = process.env.SECRET_KEY
