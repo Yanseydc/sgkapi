@@ -10,8 +10,8 @@ export const createRoles = async () => {
 
         //if roles doesn't exist, create them
         await Promise.all([
-            new Role({ name: 'user' }).save(),
-            new Role({ name: 'admin' }).save()
+            new Role({ name: process.env.ROLE1 }).save(),
+            new Role({ name: process.env.ROLE2 }).save()
         ]);
 
     } catch(error) {
