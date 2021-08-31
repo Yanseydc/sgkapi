@@ -8,6 +8,12 @@ import userRoutes from './routes/user.routes';
 import clientRoutes from './routes/client.routes';
 import authRoutes from './routes/auth.routes';
 import planRoutes from './routes/plan.routes';
+import dotenv from 'dotenv';
+
+dotenv.config({
+    path: '../.env'
+});
+
 
 const app = express();
 
